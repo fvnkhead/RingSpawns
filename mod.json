@@ -1,0 +1,21 @@
+{
+    "Name": "fvnkhead.RingSpawns",
+    "Description": "A different spawn algorithm",
+    "Version": "1.0.0",
+    "LoadPriority": 2,
+    "ConVars": [
+        {
+            "Name": "ringspawns_enabled",
+            "DefaultValue": "1"
+        }
+    ],
+    "Scripts": [
+        {
+            "Path": "ringspawns.gnut",
+            "RunOn": "SERVER",
+            "ServerCallback": {
+                "After": "RingSpawns_Init"
+            }
+        }
+    ]
+}
