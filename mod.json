@@ -4,42 +4,42 @@
     "Version": "1.0.0",
     "LoadPriority": 2,
     "ConVars": [
-        // 1 = ring spawns enabled, 0 = off
+        // 1 = RingSpawns enabled, 0 = disabled
         {
             "Name": "ringspawns_enabled",
             "DefaultValue": "1"
         },
 
-        // preferred minimum distance (in meters) to an enemy at a new spawn,
+        // Preferred minimum distance (in meters) to an enemy at a new spawn,
         // eg. with 20, you should spawn without any enemies in a 20 meter radius.
-        // the higher this is, the harder it is to find valid spawns on crowded maps,
-        // so the recommended range is around 20-30
+        // The higher this is, the harder it is to find valid spawns on crowded maps,
+        // so the recommended range is around 20-30.
         {
             "Name": "ringspawns_min_enemy_dist",
             "DefaultValue": "20"
         },
 
-        // preferred distance (in meters) to last spawned teammate
-        // the higher this is, the more spread out the spawns are
+        // Preferred distance (in meters) to last spawned teammate.
+        // The higher this is, the more spread out the spawns are.
         {
             "Name": "ringspawns_friend_dist",
             "DefaultValue": "20"
         },
 
-        // preferred distance (in meters) to average enemy team position
+        // Preferred distance (in meters) to average enemy team position
         // in case there are no living teammates (eg. in a 1v1 or 1v2 situation).
-        // the smaller this is, the less time you spend looking for enemies
-        // when having a 1v1 or 1v2 on a big map
+        // The smaller this is, the less time you spend looking for enemies
+        // when having a 1v1 or 1v2 on a big map.
         {
             "Name": "ringspawns_1vx_dist",
-            "DefaultValue": "80"
+            "DefaultValue": "60"
         },
 
-        // distance reduction for LF maps (stacks, deck, etc.) due to their smaller size
-        // applies to all distances
+        // Distance reduction for LF maps (stacks, deck, etc.) due to their smaller size.
+        // Applies to all distances.
         {
             "Name": "ringspawns_lf_map_dist_factor",
-            "DefaultValue": "0.6"
+            "DefaultValue": "0.7"
         }
     ],
     "Scripts": [

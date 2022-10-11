@@ -62,7 +62,6 @@ void function RateSpawnpoints(int checkClass, array<entity> spawnpoints, int tea
     // 1vX case, less common
     array<entity> livingEnemies = GetLivingEnemiesInRing(team)
     if (livingEnemies.len() > 0) {
-        Log("[RateSpawnpoints] 1vX with player: " + player.GetPlayerName())
         RateSpawnpointsWith1vX(checkClass, spawnpoints, team, livingEnemies)
         return
     }
