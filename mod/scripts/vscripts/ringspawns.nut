@@ -1,8 +1,17 @@
 global function RingSpawns_Init
 
+// approx. 1 meter in hammer units
+const METER_MULTIPLIER = 52.5
+
 struct {
-    bool enabled = false
+    bool enabled
+    float minEnemyDist
+    float friendDist
+    float oneVsXDist
+    float lfMapDistFactor
+
     array<entity> playerRing = []
+    table<int, entity> teamMinimapEnts = {}
 } file
 
 void function RingSpawns_Init()
@@ -13,47 +22,52 @@ void function RingSpawns_Init()
         return
     }
 
-    AddCallback_OnPlayerRespawned(AddPlayerToRing)
-    AddCallback_OnClientDisconnected(RemovePlayerFromRing)
+    file.minEnemyDist = GetConVarInt("ringspawns_min_enemy_dist") * METER_MULTIPLIER
+    file.friendDist = GetConVarInt("ringspawns_friend_dist") * METER_MULTIPLIER
+    file.oneVsXDist = GetConVarInt("ringspawns_1vx_dist") * METER_MULTIPLIER
+    file.lfMapDistFactor = GetConVarFloat("ringspawns_lf_map_dist_factor")
 
+    // shorter distances on LF maps
+    if (IsLfMap()) {
+        file.minEnemyDist *= file.lfMapDistFactor
+        file.friendDist *= file.lfMapDistFactor
+        file.oneVsXDist *= file.lfMapDistFactor
+    }
+
+    AddCallback_OnPlayerRespawned(OnPlayerRespawned_AddPlayerToRing)
+    AddCallback_OnClientDisconnected(OnClientDisconnected_RemovePlayerFromRing)
+
+    if (!IsFFAGame()) {
+        AddCallback_OnPlayerRespawned(OnPlayerRespawned_UpdateTeamMinimapEnts)
+        AddCallback_OnPlayerKilled(OnPlayerKilled_UpdateTeamMinimapEnts)
+    }
+
+    // spawn funcs
     GameMode_SetPilotSpawnpointsRatingFunc(GameRules_GetGameMode(), RateSpawnpoints)
+    AddSpawnpointValidationRule(CheckMinEnemyDist)
     SetSpawnZoneRatingFunc(DecideSpawnZone)
 }
 
 
-void function PrintRing()
-{
-    Log("[PrintRing] ----")
-    foreach (entity player in file.playerRing) {
-        int team = player.GetTeam()
-        string alive = IsAlive(player) ? "alive" : "dead"
-        string msg = format("[PrintRing] %s (team=%d) (%s)", player.GetPlayerName(), team, alive)
-        Log(msg)
-    }
-    Log("[PrintRing] ----")
-}
-
 void function RateSpawnpoints(int checkClass, array<entity> spawnpoints, int team, entity player)
 {
-    Log("[RateSpawnpoints] spawnpoints.len() = " + spawnpoints.len())
-
+    // most common case spawn
     array<entity> livingFriends = GetLivingFriendsInRing(team)
     if (livingFriends.len() > 0) {
         entity lastSpawnedFriend = livingFriends[0]
-        Log("[RateSpawnpoints] rating with a friend: " + lastSpawnedFriend.GetPlayerName())
         RateSpawnpointsWithFriend(checkClass, spawnpoints, team, lastSpawnedFriend)
         return
     }
 
+    // 1vX case, less common
     array<entity> livingEnemies = GetLivingEnemiesInRing(team)
     if (livingEnemies.len() > 0) {
-        Log("[RateSpawnpoints] rating with enemies")
-        RateSpawnpointsWithEnemies(checkClass, spawnpoints, team, livingEnemies)
+        Log("[RateSpawnpoints] 1vX with player: " + player.GetPlayerName())
+        RateSpawnpointsWith1vX(checkClass, spawnpoints, team, livingEnemies)
         return
     }
 
-    // just randomize if you're alone
-    Log("[RateSpawnpoints] random rating")
+    // random spawn if you're alone
     foreach (entity spawnpoint in spawnpoints) {
         float rating = RandomFloat(1.0)
         spawnpoint.CalculateRating(checkClass, team, rating, rating)
@@ -63,49 +77,112 @@ void function RateSpawnpoints(int checkClass, array<entity> spawnpoints, int tea
 void function RateSpawnpointsWithFriend(int checkClass, array<entity> spawnpoints, int team, entity friend)
 {
     foreach (entity spawnpoint in spawnpoints) {
-        float rating = 0 - Distance(spawnpoint.GetOrigin(), friend.GetOrigin())
+        //float rating = 1000 - Distance(spawnpoint.GetOrigin(), friend.GetOrigin())
+        float rating = ScoreLocationsByPreferredDist(spawnpoint.GetOrigin(), friend.GetOrigin(), file.friendDist)
         spawnpoint.CalculateRating(checkClass, team, rating, rating)
     }
 }
 
-void function RateSpawnpointsWithEnemies(int checkClass, array<entity> spawnpoints, int team, array<entity> enemies)
+void function RateSpawnpointsWith1vX(int checkClass, array<entity> spawnpoints, int team, array<entity> enemies)
 {
-    const preferredDist = 3000.0 // around 60 meters from avg enemy pos
-
     vector avgEnemyPos = AverageOrigin(enemies)
-    foreach (entity spawnpoint in spawnpoints ) {
-        float dist = Distance(spawnpoint.GetOrigin(),avgEnemyPos)
-        float divider = fabs(preferredDist - dist)
-        divider = divider == 0.0 ? 1.0 : divider
-        float rating = preferredDist / divider
+    foreach (entity spawnpoint in spawnpoints) {
+        float rating = ScoreLocationsByPreferredDist(spawnpoint.GetOrigin(), avgEnemyPos, file.oneVsXDist)
 
         spawnpoint.CalculateRating(checkClass, team, rating, rating)
     }
 }
 
+// the closer the distance between a and b is, the higher the returned score
+float function ScoreLocationsByPreferredDist(vector a, vector b, float preferredDist)
+{
+    float dist = Distance(a, b)
+    float diff = fabs(preferredDist - dist)
+    float rating = preferredDist - diff
+    return rating
+}
+
+bool function CheckMinEnemyDist(entity spawnpoint, int team)
+{
+    array<entity> nearbyPlayers = GetPlayerArrayEx("any", TEAM_ANY, TEAM_ANY, spawnpoint.GetOrigin(), file.minEnemyDist)
+    foreach (entity player in nearbyPlayers) {
+        if (player.GetTeam() != team) {
+            return false
+        }
+    }
+
+    return true
+}
+
+// currently this function never gets called and idk why
 entity function DecideSpawnZone(array<entity> spawnzones, int team)
 {
     Log("[DecideSpawnZone] spawnzones.len() = " + spawnzones.len())
     return spawnzones[RandomInt(spawnzones.len())]
 }
 
-void function AddPlayerToRing(entity player)
+void function OnPlayerRespawned_UpdateTeamMinimapEnts(entity player)
+{
+    UpdateTeamMinimapEnt(TEAM_IMC)
+    UpdateTeamMinimapEnt(TEAM_MILITIA)
+}
+
+void function OnPlayerKilled_UpdateTeamMinimapEnts(entity victim, entity attacker, var damageInfo)
+{
+    UpdateTeamMinimapEnt(TEAM_IMC)
+    UpdateTeamMinimapEnt(TEAM_MILITIA)
+}
+
+void function UpdateTeamMinimapEnt(int team)
+{
+    if (team in file.teamMinimapEnts) {
+        entity oldEnt = file.teamMinimapEnts[team]
+        if (IsValid(oldEnt)) {
+            oldEnt.Destroy()
+        }
+    }
+
+    array<entity> livingPlayers = GetPlayerArrayOfTeam_Alive(team)
+    if (livingPlayers.len() == 0) {
+        return
+    }
+
+    vector avgTeamPos = AverageOrigin(livingPlayers)
+    entity newEnt = CreatePropScript($"models/dev/empty_model.mdl", avgTeamPos)
+    SetTeam(newEnt, team)
+
+	newEnt.Minimap_SetObjectScale(0.01 * livingPlayers.len())
+	newEnt.Minimap_SetAlignUpright(true)
+	newEnt.Minimap_AlwaysShow(TEAM_IMC, null)
+	newEnt.Minimap_AlwaysShow(TEAM_MILITIA, null)
+	newEnt.Minimap_SetHeightTracking(true)
+	newEnt.Minimap_SetZOrder(MINIMAP_Z_OBJECT)
+
+	if (team == TEAM_IMC) {
+		newEnt.Minimap_SetCustomState(eMinimapObject_prop_script.SPAWNZONE_IMC)
+	} else {
+		newEnt.Minimap_SetCustomState(eMinimapObject_prop_script.SPAWNZONE_MIL)
+    }
+		
+	newEnt.DisableHibernation()
+
+    file.teamMinimapEnts[team] <- newEnt
+}
+
+void function OnPlayerRespawned_AddPlayerToRing(entity player)
 {
     if (file.playerRing.contains(player)) {
         file.playerRing.remove(file.playerRing.find(player))
     }
 
     file.playerRing.insert(0, player)
-    PrintRing()
 }
 
-void function RemovePlayerFromRing(entity player)
+void function OnClientDisconnected_RemovePlayerFromRing(entity player)
 {
     if (file.playerRing.contains(player)) {
         file.playerRing.remove(file.playerRing.find(player))
     }
-
-    PrintRing()
 }
 
 array<entity> function GetLivingFriendsInRing(int team)
@@ -134,6 +211,7 @@ array<entity> function GetLivingEnemiesInRing(int team)
 
 vector function AverageOrigin(array<entity> ents)
 {
+    
     vector averageOrigin = <0, 0, 0>
     foreach (entity ent in ents) {
         averageOrigin += ent.GetOrigin()
@@ -141,6 +219,40 @@ vector function AverageOrigin(array<entity> ents)
     averageOrigin /= ents.len()
 
     return averageOrigin
+}
+
+//vector function GetTeamBounds(array<entity> players)
+//{
+//    vector maxPos = <0, 0, 0>
+//    vector minPos = <0, 0, 0>
+//
+//    foreach (entity player in players) {
+//        vector playerPos = player.GetOrigin()
+//        Log("[GetTeamBounds] playerPos = " + playerPos)
+//        maxPos.x = max(maxPos.x, playerPos.x)
+//        maxPos.y = max(maxPos.y, playerPos.y)
+//        maxPos.z = max(maxPos.z, playerPos.z)
+//
+//        minPos.x = min(minPos.x, playerPos.x)
+//        minPos.y = min(minPos.y, playerPos.y)
+//        minPos.z = min(minPos.z, playerPos.z)
+//    }
+//
+//    return maxPos - minPos
+//}
+
+array<string> LF_MAPS = [
+    "mp_lf_stacks",
+    "mp_lf_deck",
+    "mp_lf_township",
+    "mp_lf_uma",
+    "mp_lf_traffic",
+    "mp_lf_meadow"
+]
+
+bool function IsLfMap()
+{
+    return LF_MAPS.contains(GetMapName())
 }
 
 void function Log(string msg)
