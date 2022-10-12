@@ -92,7 +92,7 @@ void function RateSpawnpointsWith1vX(int checkClass, array<entity> spawnpoints, 
     }
 }
 
-// the closer the distance between a and b is, the higher the returned score
+// the closer the distance between a and b is to preferred, the higher the returned score
 float function ScoreLocationsByPreferredDist(vector a, vector b, float preferredDist)
 {
     float dist = Distance(a, b)
