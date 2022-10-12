@@ -51,7 +51,7 @@ Caveats
 --------------------------------------------------------------------------------
 
  * This affects pilot spawns only, titans are unaffected
- * Has only been tested on Pilots vs. Pilots
+ * Has only been tested on Pilots vs. Pilots (it should be playable with FFA modes though)
  * TF2 and Northstar add some randomization to spawns, so it's hard to write a very accurate algorithm
 
 ConVars

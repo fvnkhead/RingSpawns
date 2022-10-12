@@ -51,7 +51,7 @@ void function RingSpawns_Init()
 
 void function RateSpawnpoints(int checkClass, array<entity> spawnpoints, int team, entity player)
 {
-    // most common case spawn
+    // most common case spawn in team modes
     array<entity> livingFriends = GetLivingFriendsInRing(team)
     if (livingFriends.len() > 0) {
         entity lastSpawnedFriend = livingFriends[0]
@@ -59,7 +59,7 @@ void function RateSpawnpoints(int checkClass, array<entity> spawnpoints, int tea
         return
     }
 
-    // 1vX case, less common
+    // 1vX case for FFA, happens in team modes only without living teammates
     array<entity> livingEnemies = GetLivingEnemiesInRing(team)
     if (livingEnemies.len() > 0) {
         RateSpawnpointsWith1vX(checkClass, spawnpoints, team, livingEnemies)
