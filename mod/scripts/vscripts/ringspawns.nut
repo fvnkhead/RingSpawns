@@ -150,20 +150,20 @@ void function UpdateTeamMinimapEnt(int team)
     entity newEnt = CreatePropScript($"models/dev/empty_model.mdl", avgTeamPos)
     SetTeam(newEnt, team)
 
-	newEnt.Minimap_SetObjectScale(0.01 * livingPlayers.len())
-	newEnt.Minimap_SetAlignUpright(true)
-	newEnt.Minimap_AlwaysShow(TEAM_IMC, null)
-	newEnt.Minimap_AlwaysShow(TEAM_MILITIA, null)
-	newEnt.Minimap_SetHeightTracking(true)
-	newEnt.Minimap_SetZOrder(MINIMAP_Z_OBJECT)
+    newEnt.Minimap_SetObjectScale(0.01 * livingPlayers.len())
+    newEnt.Minimap_SetAlignUpright(true)
+    newEnt.Minimap_AlwaysShow(TEAM_IMC, null)
+    newEnt.Minimap_AlwaysShow(TEAM_MILITIA, null)
+    newEnt.Minimap_SetHeightTracking(true)
+    newEnt.Minimap_SetZOrder(MINIMAP_Z_OBJECT)
 
-	if (team == TEAM_IMC) {
-		newEnt.Minimap_SetCustomState(eMinimapObject_prop_script.SPAWNZONE_IMC)
-	} else {
-		newEnt.Minimap_SetCustomState(eMinimapObject_prop_script.SPAWNZONE_MIL)
+    if (team == TEAM_IMC) {
+        newEnt.Minimap_SetCustomState(eMinimapObject_prop_script.SPAWNZONE_IMC)
+    } else {
+        newEnt.Minimap_SetCustomState(eMinimapObject_prop_script.SPAWNZONE_MIL)
     }
 		
-	newEnt.DisableHibernation()
+    newEnt.DisableHibernation()
 
     file.teamMinimapEnts[team] <- newEnt
 }
