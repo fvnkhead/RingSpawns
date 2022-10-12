@@ -16,14 +16,14 @@
         // so the recommended range is around 20-30.
         {
             "Name": "ringspawns_min_enemy_dist",
-            "DefaultValue": "20"
+            "DefaultValue": "30"
         },
 
         // Preferred distance (in meters) to last spawned teammate.
         // The higher this is, the more spread out the spawns are.
         {
             "Name": "ringspawns_friend_dist",
-            "DefaultValue": "20"
+            "DefaultValue": "30"
         },
 
         // Preferred distance (in meters) to average enemy team position

@@ -22,7 +22,7 @@ How the goals are achieved
 
 ### Not spawning close to enemies
 
-There is a minimum enemy distance of 20 meters at spawn, which should avoid
+There is a minimum enemy distance of 30 meters at spawn, which should avoid
 very close spawns.
 
 ### Not spawning far from enemies
