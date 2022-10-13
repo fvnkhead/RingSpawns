@@ -55,6 +55,17 @@ Caveats
  * Has only been tested on Pilots vs. Pilots (it should be playable with FFA modes though)
  * TF2 and Northstar add some randomization to spawns, so it's hard to write a very accurate algorithm
 
+Monitoring
+--------------------------------------------------------------------------------
+
+Northstar log spews out `found no valid spawns! spawns may be subpar!` if there
+are no valid spawns available. This can happen if:
+
+ 1. The minimum enemy distances are too high
+ 2. There's too many players for the map and/or gamemode
+ 3. Playing on Colony, spawns there are not great for whatever reason
+ 4. Combination of 1, 2 and 3
+
 ConVars
 --------------------------------------------------------------------------------
 
