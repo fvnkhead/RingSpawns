@@ -31,7 +31,7 @@ There are also separate settings for enemy titans and spectres.
 You spawn near your _most recently_ spawned teammate, which,
 on the average, puts you close to your team where the action is occurring.
 If there are no teammates alive or in the game, the algorithm tries to put
-you at a 75 meter distance from the average enemy position.
+you at a 75 meter distance from the median enemy position.
 
 ### Not playing in the same area
 
@@ -45,7 +45,7 @@ the backyard area on Exoplanet, or the dock area on Angel City.
 Since spawns depend on your teammates, you spawn close to your friends, and
 same for the enemies. This means 2v2 or 3v3 on a big map like Angel City
 can still be entertaining, where both teams fight in a smaller area of the map.
-The minimap "spawn zone" indicator also adjusts to the average team location at
+The minimap "spawn zone" indicator also adjusts to the median team location at
 every death and respawn, which means it's easier to find your enemies.
 
 Caveats

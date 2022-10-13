@@ -18,7 +18,7 @@
             "DefaultValue": "25"
         },
 
-        // Preferred distance (in meters) to average enemy team position
+        // Preferred distance (in meters) to median enemy team position
         // in case there are no living teammates (eg. in a 1v1 or 1v2 situation),
         // or if playing FFA.
         // The smaller this is, the less time you spend looking for enemies

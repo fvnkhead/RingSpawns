@@ -44,10 +44,8 @@ void function RingSpawns_Init()
     AddCallback_OnPlayerRespawned(OnPlayerRespawned_AddPlayerToRing)
     AddCallback_OnClientDisconnected(OnClientDisconnected_RemovePlayerFromRing)
 
-    if (!IsFFAGame()) {
-        AddCallback_OnPlayerRespawned(OnPlayerRespawned_UpdateTeamMinimapEnts)
-        AddCallback_OnPlayerKilled(OnPlayerKilled_UpdateTeamMinimapEnts)
-    }
+    AddCallback_OnPlayerRespawned(OnPlayerRespawned_UpdateMinimapEnts)
+    AddCallback_OnPlayerKilled(OnPlayerKilled_UpdateMinimapEnts)
 
     // spawn funcs
     GameMode_SetPilotSpawnpointsRatingFunc(GameRules_GetGameMode(), RateSpawnpoints)
@@ -90,9 +88,9 @@ void function RateSpawnpointsWithFriend(int checkClass, array<entity> spawnpoint
 
 void function RateSpawnpointsWith1vX(int checkClass, array<entity> spawnpoints, int team, array<entity> enemies)
 {
-    vector avgEnemyPos = AverageOrigin(enemies)
+    vector medianEnemyPos = GetMedianOriginOfEntities(enemies)
     foreach (entity spawnpoint in spawnpoints) {
-        float rating = ScoreLocationsByPreferredDist(spawnpoint.GetOrigin(), avgEnemyPos, file.oneVsXDist)
+        float rating = ScoreLocationsByPreferredDist(spawnpoint.GetOrigin(), medianEnemyPos, file.oneVsXDist)
 
         spawnpoint.CalculateRating(checkClass, team, rating, rating)
     }
@@ -146,16 +144,24 @@ entity function DecideSpawnZone(array<entity> spawnzones, int team)
     return spawnzones[RandomInt(spawnzones.len())]
 }
 
-void function OnPlayerRespawned_UpdateTeamMinimapEnts(entity player)
+void function OnPlayerRespawned_UpdateMinimapEnts(entity player)
 {
-    UpdateTeamMinimapEnt(TEAM_IMC)
-    UpdateTeamMinimapEnt(TEAM_MILITIA)
+    UpdateMinimapEnts()
 }
 
-void function OnPlayerKilled_UpdateTeamMinimapEnts(entity victim, entity attacker, var damageInfo)
+void function OnPlayerKilled_UpdateMinimapEnts(entity victim, entity attacker, var damageInfo)
 {
-    UpdateTeamMinimapEnt(TEAM_IMC)
-    UpdateTeamMinimapEnt(TEAM_MILITIA)
+    UpdateMinimapEnts()
+}
+
+void function UpdateMinimapEnts()
+{
+    if (!IsFFAGame()) {
+        UpdateTeamMinimapEnt(TEAM_IMC)
+        UpdateTeamMinimapEnt(TEAM_MILITIA)
+    } else {
+        return // TODO: FFA minimap ent
+    }
 }
 
 void function UpdateTeamMinimapEnt(int team)
@@ -172,16 +178,16 @@ void function UpdateTeamMinimapEnt(int team)
         return
     }
 
-    vector avgTeamPos = AverageOrigin(livingPlayers)
-    entity newEnt = CreatePropScript($"models/dev/empty_model.mdl", avgTeamPos)
+    vector medianTeamPos = GetMedianOriginOfEntities(livingPlayers)
+    entity newEnt = CreatePropScript($"models/dev/empty_model.mdl", medianTeamPos)
     SetTeam(newEnt, team)
 
     newEnt.Minimap_SetObjectScale(0.01 * livingPlayers.len())
     newEnt.Minimap_SetAlignUpright(true)
-    newEnt.Minimap_AlwaysShow(TEAM_IMC, null)
-    newEnt.Minimap_AlwaysShow(TEAM_MILITIA, null)
     newEnt.Minimap_SetHeightTracking(true)
     newEnt.Minimap_SetZOrder(MINIMAP_Z_OBJECT)
+    newEnt.Minimap_AlwaysShow(TEAM_IMC, null)
+    newEnt.Minimap_AlwaysShow(TEAM_MILITIA, null)
 
     if (team == TEAM_IMC) {
         newEnt.Minimap_SetCustomState(eMinimapObject_prop_script.SPAWNZONE_IMC)
@@ -232,17 +238,6 @@ array<entity> function GetLivingEnemiesInRing(int team)
     }
 
     return livingEnemies
-}
-
-vector function AverageOrigin(array<entity> ents)
-{
-    vector averageOrigin = <0, 0, 0>
-    foreach (entity ent in ents) {
-        averageOrigin += ent.GetOrigin()
-    }
-    averageOrigin /= ents.len()
-
-    return averageOrigin
 }
 
 array<string> LF_MAPS = [
