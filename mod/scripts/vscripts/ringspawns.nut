@@ -5,9 +5,11 @@ const METER_MULTIPLIER = 52.5
 
 struct {
     bool enabled
-    float minEnemyDist
     float friendDist
     float oneVsXDist
+    float minEnemyPilotDist
+    float minEnemyTitanDist
+    float minEnemyReaperDist
     float lfMapDistFactor
 
     array<entity> playerRing = []
@@ -22,16 +24,21 @@ void function RingSpawns_Init()
         return
     }
 
-    file.minEnemyDist = GetConVarInt("ringspawns_min_enemy_dist") * METER_MULTIPLIER
-    file.friendDist = GetConVarInt("ringspawns_friend_dist") * METER_MULTIPLIER
-    file.oneVsXDist = GetConVarInt("ringspawns_1vx_dist") * METER_MULTIPLIER
+    file.friendDist = GetConVarFloat("ringspawns_friend_dist") * METER_MULTIPLIER
+    file.oneVsXDist = GetConVarFloat("ringspawns_1vx_dist") * METER_MULTIPLIER
+    file.minEnemyPilotDist = GetConVarFloat("ringspawns_min_enemy_pilot_dist") * METER_MULTIPLIER
+    file.minEnemyTitanDist = GetConVarFloat("ringspawns_min_enemy_titan_dist") * METER_MULTIPLIER
+    file.minEnemyReaperDist = GetConVarFloat("ringspawns_min_enemy_reaper_dist") * METER_MULTIPLIER
     file.lfMapDistFactor = GetConVarFloat("ringspawns_lf_map_dist_factor")
 
     // shorter distances on LF maps
     if (IsLfMap()) {
-        file.minEnemyDist *= file.lfMapDistFactor
         file.friendDist *= file.lfMapDistFactor
         file.oneVsXDist *= file.lfMapDistFactor
+        file.minEnemyPilotDist *= file.lfMapDistFactor
+        // unnecessary on LF maps but eh, maybe an admin abuser spawns a titan
+        file.minEnemyTitanDist *= file.lfMapDistFactor
+        file.minEnemyReaperDist *= file.lfMapDistFactor
     }
 
     AddCallback_OnPlayerRespawned(OnPlayerRespawned_AddPlayerToRing)
@@ -76,7 +83,6 @@ void function RateSpawnpoints(int checkClass, array<entity> spawnpoints, int tea
 void function RateSpawnpointsWithFriend(int checkClass, array<entity> spawnpoints, int team, entity friend)
 {
     foreach (entity spawnpoint in spawnpoints) {
-        //float rating = 1000 - Distance(spawnpoint.GetOrigin(), friend.GetOrigin())
         float rating = ScoreLocationsByPreferredDist(spawnpoint.GetOrigin(), friend.GetOrigin(), file.friendDist)
         spawnpoint.CalculateRating(checkClass, team, rating, rating)
     }
@@ -101,11 +107,31 @@ float function ScoreLocationsByPreferredDist(vector a, vector b, float preferred
     return rating
 }
 
+// enemy distance validator, could probably combine the loops below later
 bool function CheckMinEnemyDist(entity spawnpoint, int team)
 {
-    array<entity> nearbyPlayers = GetPlayerArrayEx("any", TEAM_ANY, TEAM_ANY, spawnpoint.GetOrigin(), file.minEnemyDist)
+    vector pos = spawnpoint.GetOrigin()
+
+    // enemy pilot check
+    array<entity> nearbyPlayers = GetPlayerArrayEx("any", TEAM_ANY, TEAM_ANY, pos, file.minEnemyPilotDist)
     foreach (entity player in nearbyPlayers) {
         if (player.GetTeam() != team) {
+            return false
+        }
+    }
+
+    // enemy titan check
+    nearbyPlayers = GetPlayerArrayEx("any", TEAM_ANY, TEAM_ANY, pos, file.minEnemyTitanDist)
+    foreach (entity player in nearbyPlayers) {
+        if (player.GetTeam() != team && player.IsTitan()) {
+            return false
+        }
+    }
+
+    // enemy reaper check
+    array<entity> nearbyReapers = GetNPCArrayEx("npc_super_spectre", TEAM_ANY, TEAM_ANY, pos, file.minEnemyReaperDist)
+    foreach (entity reaper in nearbyReapers) {
+        if (reaper.GetTeam() != team) {
             return false
         }
     }
@@ -210,7 +236,6 @@ array<entity> function GetLivingEnemiesInRing(int team)
 
 vector function AverageOrigin(array<entity> ents)
 {
-    
     vector averageOrigin = <0, 0, 0>
     foreach (entity ent in ents) {
         averageOrigin += ent.GetOrigin()
@@ -219,26 +244,6 @@ vector function AverageOrigin(array<entity> ents)
 
     return averageOrigin
 }
-
-//vector function GetTeamBounds(array<entity> players)
-//{
-//    vector maxPos = <0, 0, 0>
-//    vector minPos = <0, 0, 0>
-//
-//    foreach (entity player in players) {
-//        vector playerPos = player.GetOrigin()
-//        Log("[GetTeamBounds] playerPos = " + playerPos)
-//        maxPos.x = max(maxPos.x, playerPos.x)
-//        maxPos.y = max(maxPos.y, playerPos.y)
-//        maxPos.z = max(maxPos.z, playerPos.z)
-//
-//        minPos.x = min(minPos.x, playerPos.x)
-//        minPos.y = min(minPos.y, playerPos.y)
-//        minPos.z = min(minPos.z, playerPos.z)
-//    }
-//
-//    return maxPos - minPos
-//}
 
 array<string> LF_MAPS = [
     "mp_lf_stacks",

@@ -1,8 +1,8 @@
 {
     "Name": "fvnkhead.RingSpawns",
     "Description": "A different spawn algorithm",
-    "Version": "1.0.0",
-    "LoadPriority": 2,
+    "Version": "0.1.0",
+    "LoadPriority": 10,
     "ConVars": [
         // 1 = RingSpawns enabled, 0 = disabled
         {
@@ -10,20 +10,12 @@
             "DefaultValue": "1"
         },
 
-        // Preferred minimum distance (in meters) to an enemy at a new spawn,
-        // eg. with 20, you should spawn without any enemies in a 20 meter radius.
-        // The higher this is, the harder it is to find valid spawns on crowded maps,
-        // so the recommended range is around 20-30.
-        {
-            "Name": "ringspawns_min_enemy_dist",
-            "DefaultValue": "30"
-        },
-
         // Preferred distance (in meters) to last spawned teammate.
-        // The higher this is, the more spread out the spawns are.
+        // 20 meters can lead to pretty packed games,
+        // while 30 seems to be more spread out like vanilla.
         {
             "Name": "ringspawns_friend_dist",
-            "DefaultValue": "30"
+            "DefaultValue": "25"
         },
 
         // Preferred distance (in meters) to average enemy team position
@@ -31,16 +23,38 @@
         // or if playing FFA.
         // The smaller this is, the less time you spend looking for enemies
         // when having a 1v1 or 1v2 on a big map.
+        // Recommended range is around 60-90.
         {
             "Name": "ringspawns_1vx_dist",
-            "DefaultValue": "60"
+            "DefaultValue": "75"
+        },
+
+        // Minimum distance (in meters) to an enemy pilot at a new spawn,
+        // eg. with 25, you should spawn without any enemies in a 25 meter radius.
+        // The higher this is, the harder it is to find valid spawns on crowded maps,
+        // so the recommended range is around 20-30.
+        {
+            "Name": "ringspawns_min_enemy_pilot_dist",
+            "DefaultValue": "25"
+        },
+
+        // Minimum distance (in meters) to an enemy titan at spawn.
+        {
+            "Name": "ringspawns_min_enemy_titan_dist",
+            "DefaultValue": "35"
+        },
+
+        // Minimum distance (in meters) to an enemy reaper at spawn.
+        {
+            "Name": "ringspawns_min_enemy_reaper_dist",
+            "DefaultValue": "15"
         },
 
         // Distance reduction for LF maps (stacks, deck, etc.) due to their smaller size.
         // Applies to all distances.
         {
             "Name": "ringspawns_lf_map_dist_factor",
-            "DefaultValue": "0.7"
+            "DefaultValue": "0.6"
         }
     ],
     "Scripts": [

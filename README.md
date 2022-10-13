@@ -22,15 +22,16 @@ How the goals are achieved
 
 ### Not spawning close to enemies
 
-There is a minimum enemy distance of 30 meters at spawn, which should avoid
-very close spawns.
+There is a minimum distance of 25 meters to an enemy pilot at spawn,
+which should avoid very close spawns most of the time.
+There are also separate settings for enemy titans and spectres.
 
 ### Not spawning far from enemies
 
 You spawn near your _most recently_ spawned teammate, which,
 on the average, puts you close to your team where the action is occurring.
 If there are no teammates alive or in the game, the algorithm tries to put
-you at a 60 meter distance from the average enemy position.
+you at a 75 meter distance from the average enemy position.
 
 ### Not playing in the same area
 
