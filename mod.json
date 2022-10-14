@@ -55,6 +55,12 @@
         {
             "Name": "ringspawns_lf_map_dist_factor",
             "DefaultValue": "0.6"
+        },
+
+        // 1 = Print debug messages to log (starting with the string "[ringspawns/debug]")
+        {
+            "Name": "ringspawns_debug_enabled",
+            "DefaultValue": "0"
         }
     ],
     "Scripts": [

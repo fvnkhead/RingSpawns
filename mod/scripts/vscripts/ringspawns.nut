@@ -14,13 +14,17 @@ struct {
 
     array<entity> playerRing = []
     table<int, entity> teamMinimapEnts = {}
+
+    bool debugEnabled
 } file
 
 void function RingSpawns_Init()
 {
     file.enabled = GetConVarBool("ringspawns_enabled")
+    file.debugEnabled = GetConVarBool("ringspawns_debug_enabled")
 
     if (!file.enabled) {
+        Log("ringspawns are disabled")
         return
     }
 
@@ -33,6 +37,7 @@ void function RingSpawns_Init()
 
     // shorter distances on LF maps
     if (IsLfMap()) {
+        Debug("[RingSpawns_Init] LF map, using shorter distances with factor " + file.lfMapDistFactor)
         file.friendDist *= file.lfMapDistFactor
         file.oneVsXDist *= file.lfMapDistFactor
         file.minEnemyPilotDist *= file.lfMapDistFactor
@@ -41,16 +46,16 @@ void function RingSpawns_Init()
         file.minEnemyReaperDist *= file.lfMapDistFactor
     }
 
-    AddCallback_OnPlayerRespawned(OnPlayerRespawned_AddPlayerToRing)
-    AddCallback_OnClientDisconnected(OnClientDisconnected_RemovePlayerFromRing)
-
-    AddCallback_OnPlayerRespawned(OnPlayerRespawned_UpdateMinimapEnts)
-    AddCallback_OnPlayerKilled(OnPlayerKilled_UpdateMinimapEnts)
+    AddCallback_OnPlayerRespawned(OnPlayerRespawned)
+    AddCallback_OnPlayerKilled(OnPlayerKilled)
+    AddCallback_OnClientDisconnected(OnClientDisconnected)
 
     // spawn funcs
     GameMode_SetPilotSpawnpointsRatingFunc(GameRules_GetGameMode(), RateSpawnpoints)
     AddSpawnpointValidationRule(CheckMinEnemyDist)
     SetSpawnZoneRatingFunc(DecideSpawnZone)
+
+    Log("ringspawns are enabled")
 }
 
 
@@ -140,17 +145,29 @@ bool function CheckMinEnemyDist(entity spawnpoint, int team)
 // currently this function never gets called and idk why
 entity function DecideSpawnZone(array<entity> spawnzones, int team)
 {
-    Log("[DecideSpawnZone] spawnzones.len() = " + spawnzones.len())
+    Log("[DecideSpawnZone] if you see this message, tell fvnkhead")
     return spawnzones[RandomInt(spawnzones.len())]
 }
 
-void function OnPlayerRespawned_UpdateMinimapEnts(entity player)
+void function OnPlayerRespawned(entity player)
 {
+    if (file.debugEnabled) {
+        DebugSpawn(player)
+    }
+
+    AddPlayerToRing(player)
     UpdateMinimapEnts()
 }
 
-void function OnPlayerKilled_UpdateMinimapEnts(entity victim, entity attacker, var damageInfo)
+void function OnPlayerKilled(entity victim, entity attacker, var damageInfo)
 {
+    RemovePlayerFromRing(victim)
+    UpdateMinimapEnts()
+}
+
+void function OnClientDisconnected(entity player)
+{
+    RemovePlayerFromRing(player)
     UpdateMinimapEnts()
 }
 
@@ -200,7 +217,7 @@ void function UpdateTeamMinimapEnt(int team)
     file.teamMinimapEnts[team] <- newEnt
 }
 
-void function OnPlayerRespawned_AddPlayerToRing(entity player)
+void function AddPlayerToRing(entity player)
 {
     if (file.playerRing.contains(player)) {
         file.playerRing.remove(file.playerRing.find(player))
@@ -209,7 +226,7 @@ void function OnPlayerRespawned_AddPlayerToRing(entity player)
     file.playerRing.insert(0, player)
 }
 
-void function OnClientDisconnected_RemovePlayerFromRing(entity player)
+void function RemovePlayerFromRing(entity player)
 {
     if (file.playerRing.contains(player)) {
         file.playerRing.remove(file.playerRing.find(player))
@@ -254,7 +271,40 @@ bool function IsLfMap()
     return LF_MAPS.contains(GetMapName())
 }
 
+void function DebugSpawn(entity player)
+{
+    int team = player.GetTeam()
+    string playerName = player.GetPlayerName()
+    array<entity> livingFriends = GetLivingFriendsInRing(team)
+    array<entity> livingEnemies = GetLivingEnemiesInRing(team)
+    string msg = format("'%s' spawned randomly because no living friends or enemies", playerName)
+    if (livingFriends.len() > 0) {
+        entity friend = livingFriends[0]
+        string friendName = friend.GetPlayerName()
+        float dist = Distance(player.GetOrigin(), friend.GetOrigin()) / METER_MULTIPLIER
+        msg = format("'%s' spawned %.0f meters from '%s'", playerName, dist, friendName)
+    } else if (livingEnemies.len() > 0) {
+        vector medianEnemyPos = GetMedianOriginOfEntities(livingEnemies)
+        float dist = Distance(player.GetOrigin(), medianEnemyPos) / METER_MULTIPLIER
+        msg = format("'%s' spawned %.0f meters from median enemy position", playerName, dist)
+    }
+
+    Debug("[DebugSpawn] " + msg)
+}
+
 void function Log(string msg)
 {
-    print("[RingSpawns] " + msg)
+    print("[ringspawns/log] " + msg)
+}
+
+void function Warn(string msg)
+{
+    print("[ringspawns/warn] " + msg)
+}
+
+void function Debug(string msg)
+{
+    if (file.debugEnabled) {
+        print("[ringspawns/debug] " + msg)
+    }
 }
