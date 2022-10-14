@@ -66,7 +66,10 @@ are no valid spawns available. This can happen if:
  3. Playing on Colony, spawns there are not great for whatever reason
  4. Combination of 1, 2 and 3
 
-ConVars
+Also set the convar `ringspawns_debug_enabled` to `1` if you want to study
+distances at every spawn.
+
+Convars
 --------------------------------------------------------------------------------
 
 See `mod.json` for what to tune and why.
