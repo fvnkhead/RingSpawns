@@ -3,6 +3,12 @@ global function RingSpawns_Init
 // approx. 1 meter in hammer units
 const METER_MULTIPLIER = 52.5
 
+enum eMinimapVisibility {
+    NONE = 0,
+    TEAM = 1,
+    ALL  = 2
+}
+
 struct {
     bool enabled
     float friendDist
@@ -11,6 +17,7 @@ struct {
     float minEnemyTitanDist
     float minEnemyReaperDist
     float lfMapDistFactor
+    int minimapVisibility
 
     array<entity> playerRing = []
     table<int, entity> teamMinimapEnts = {}
@@ -35,8 +42,17 @@ void function RingSpawns_Init()
     file.minEnemyReaperDist = GetConVarFloat("ringspawns_min_enemy_reaper_dist") * METER_MULTIPLIER
     file.lfMapDistFactor = GetConVarFloat("ringspawns_lf_map_dist_factor")
 
+    file.minimapVisibility = GetConVarInt("ringspawns_minimap_visibility")
+    if (file.minimapVisibility > eMinimapVisibility.ALL) {
+        Warn("ringspawns_minimap_visibility too large, defaulting to 2")
+        file.minimapVisibility = eMinimapVisibility.ALL
+    } else if (file.minimapVisibility < eMinimapVisibility.NONE) {
+        Warn("ringspawns_minimap_visibility too small, defaulting to 0")
+        file.minimapVisibility = eMinimapVisibility.NONE
+    }
+
     // shorter distances on LF maps
-    if (IsLfMap()) {
+    if (IsLFMap()) {
         Debug("[RingSpawns_Init] LF map, using shorter distances with factor " + file.lfMapDistFactor)
         file.friendDist *= file.lfMapDistFactor
         file.oneVsXDist *= file.lfMapDistFactor
@@ -183,6 +199,10 @@ void function UpdateMinimapEnts()
 
 void function UpdateTeamMinimapEnt(int team)
 {
+    if (file.minimapVisibility <= eMinimapVisibility.NONE) {
+        return
+    }
+
     if (team in file.teamMinimapEnts) {
         entity oldEnt = file.teamMinimapEnts[team]
         if (IsValid(oldEnt)) {
@@ -203,9 +223,16 @@ void function UpdateTeamMinimapEnt(int team)
     newEnt.Minimap_SetAlignUpright(true)
     newEnt.Minimap_SetHeightTracking(true)
     newEnt.Minimap_SetZOrder(MINIMAP_Z_OBJECT)
-    newEnt.Minimap_AlwaysShow(TEAM_IMC, null)
-    newEnt.Minimap_AlwaysShow(TEAM_MILITIA, null)
 
+    if (file.minimapVisibility >= eMinimapVisibility.TEAM) {
+        newEnt.Minimap_AlwaysShow(team, null)
+    }
+
+    if (file.minimapVisibility >= eMinimapVisibility.ALL) {
+        newEnt.Minimap_AlwaysShow(GetOtherTeam(team), null)
+    }
+
+    // these are required, so I don't know how to make this work for FFA
     if (team == TEAM_IMC) {
         newEnt.Minimap_SetCustomState(eMinimapObject_prop_script.SPAWNZONE_IMC)
     } else {
@@ -266,7 +293,7 @@ array<string> LF_MAPS = [
     "mp_lf_meadow"
 ]
 
-bool function IsLfMap()
+bool function IsLFMap()
 {
     return LF_MAPS.contains(GetMapName())
 }

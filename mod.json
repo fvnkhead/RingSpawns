@@ -57,6 +57,15 @@
             "DefaultValue": "0.6"
         },
 
+        // Minimap modes:
+        //  2 = show both enemy and friendly team median positions
+        //  1 = only show friendly team's median position
+        //  0 = do not show team positions at all
+        {
+            "Name": "ringspawns_minimap_visibility",
+            "DefaultValue": "2"
+        },
+
         // 1 = Print debug messages to log (starting with the string "[ringspawns/debug]")
         {
             "Name": "ringspawns_debug_enabled",
