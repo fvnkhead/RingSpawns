@@ -1,7 +1,7 @@
 {
     "Name": "fvnkhead.RingSpawns",
     "Description": "A different spawn algorithm",
-    "Version": "0.1.0",
+    "Version": "1.0.0",
     "LoadPriority": 10,
     "ConVars": [
         // 1 = RingSpawns enabled, 0 = disabled

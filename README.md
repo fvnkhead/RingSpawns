@@ -1,7 +1,7 @@
 RingSpawns
 ================================================================================
 
-A different spawn algorithm for Northstar. (work in progress)
+A different spawn algorithm for Northstar.
 
 Name
 --------------------------------------------------------------------------------
