@@ -2,6 +2,7 @@ RingSpawns
 ================================================================================
 
 A different spawn algorithm for Northstar.
+Currently playable on at least Pilots vs. Pilots, FFA modes and Attrition.
 
 Name
 --------------------------------------------------------------------------------
@@ -52,8 +53,8 @@ Caveats
 --------------------------------------------------------------------------------
 
  * This affects pilot spawns only, titans are unaffected
- * Has only been tested on Pilots vs. Pilots (it should be playable with FFA modes though)
  * TF2 and Northstar add some randomization to spawns, so it's hard to write a very accurate algorithm
+ * Some players don't like the lack of 1v1s, maybe this will be solved later
 
 Monitoring
 --------------------------------------------------------------------------------
