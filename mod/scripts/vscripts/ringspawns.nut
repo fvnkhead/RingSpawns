@@ -19,8 +19,13 @@ struct {
     float lfMapDistFactor
     int minimapVisibility
 
+    bool squadsEnabled
+    int squadSize
+    float squadDist
+
     array<entity> playerRing = []
     table<int, entity> teamMinimapEnts = {}
+    table<int, int> teamSquadCounter = {}
 
     bool debugEnabled
 } file
@@ -51,12 +56,17 @@ void function RingSpawns_Init()
         file.minimapVisibility = eMinimapVisibility.NONE
     }
 
+    file.squadsEnabled = GetConVarBool("ringspawns_squads_enabled")
+    file.squadSize = GetConVarInt("ringspawns_squad_size")
+    file.squadDist = GetConVarFloat("ringspawns_squad_dist")
+
     // shorter distances on LF maps
     if (IsLFMap()) {
         Debug("[RingSpawns_Init] LF map, using shorter distances with factor " + file.lfMapDistFactor)
         file.friendDist *= file.lfMapDistFactor
         file.oneVsXDist *= file.lfMapDistFactor
         file.minEnemyPilotDist *= file.lfMapDistFactor
+        file.squadDist *= file.lfMapDistFactor
         // unnecessary on LF maps but eh, maybe an admin abuser spawns a titan
         file.minEnemyTitanDist *= file.lfMapDistFactor
         file.minEnemyReaperDist *= file.lfMapDistFactor
@@ -77,6 +87,13 @@ void function RingSpawns_Init()
 
 void function RateSpawnpoints(int checkClass, array<entity> spawnpoints, int team, entity player)
 {
+    // squad spawn case, only if enabled
+    if (CheckSquadSpawn(player)) {
+        Debug("squad spawn for " + player.GetPlayerName())
+        RateSpawnPointsWithSquad(checkClass, spawnpoints, team)
+        return
+    }
+
     // most common case spawn in team modes
     array<entity> livingFriends = GetLivingFriendsInRing(team)
     if (livingFriends.len() > 0) {
@@ -95,6 +112,16 @@ void function RateSpawnpoints(int checkClass, array<entity> spawnpoints, int tea
     // random spawn if you're alone
     foreach (entity spawnpoint in spawnpoints) {
         float rating = RandomFloat(1.0)
+        spawnpoint.CalculateRating(checkClass, team, rating, rating)
+    }
+}
+
+void function RateSpawnPointsWithSquad(int checkClass, array<entity> spawnpoints, int team)
+{
+    array<entity> livingFriends = GetPlayerArrayOfTeam_Alive(team)
+    vector medianPos = GetMedianOriginOfEntities(livingPlayers)
+    foreach (entity spawnpoint in spawnpoints) {
+        float rating = ScoreLocationsByPreferredDist(spawnpoint.GetOrigin(), medianPos, file.squadDist)
         spawnpoint.CalculateRating(checkClass, team, rating, rating)
     }
 }
@@ -156,6 +183,34 @@ bool function CheckMinEnemyDist(entity spawnpoint, int team)
     }
 
     return true
+}
+
+// checks if the squad size limit for a player's team has been reached,
+// and updates the counter meanwhile
+bool function CheckSquadSpawn(entity player)
+{
+    if (!file.squadsEnabled) {
+        return false
+    }
+
+    int team = player.GetTeam()
+    if (GetPlayerArrayOfTeam_Alive(team).len() == 0) {
+        return false
+    }
+
+    int count = 0
+    if (team in file.teamSquadCounter) {
+        count = file.teamSquadCounter[team]
+    }
+
+    if (count >= file.squadSize) {
+        file.teamSquadCounter[team] <- 0
+        return true
+    }
+
+    file.teamSquadCounter[team] <- count + 1
+
+    return false
 }
 
 // currently this function never gets called and idk why

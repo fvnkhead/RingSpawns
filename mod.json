@@ -10,12 +10,18 @@
             "DefaultValue": "1"
         },
 
+        // 1 = Debug spawn distances to log (starting with the string "[ringspawns/debug]")
+        {
+            "Name": "ringspawns_debug_enabled",
+            "DefaultValue": "1"
+        },
+
         // Preferred distance (in meters) to last spawned teammate.
         // 20 meters can lead to pretty packed games,
         // while 30 seems to be more spread out like vanilla.
         {
             "Name": "ringspawns_friend_dist",
-            "DefaultValue": "25"
+            "DefaultValue": "20"
         },
 
         // Preferred distance (in meters) to median enemy team position
@@ -66,10 +72,19 @@
             "DefaultValue": "2"
         },
 
-        // 1 = Print debug messages to log (starting with the string "[ringspawns/debug]")
+        // Optional features
+
         {
-            "Name": "ringspawns_debug_enabled",
-            "DefaultValue": "0"
+            "Name": "ringspawns_squads_enabled",
+            "DefaultValue": "1"
+        },
+        {
+            "Name": "ringspawns_squad_size",
+            "DefaultValue": "3"
+        },
+        {
+            "Name": "ringspawns_squad_dist",
+            "DefaultValue": "100"
         }
     ],
     "Scripts": [
