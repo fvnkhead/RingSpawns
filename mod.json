@@ -15,7 +15,7 @@
         // while 30 seems to be more spread out like vanilla.
         {
             "Name": "ringspawns_friend_dist",
-            "DefaultValue": "25"
+            "DefaultValue": "30"
         },
 
         // Preferred distance (in meters) to median enemy team position
@@ -35,19 +35,19 @@
         // so the recommended range is around 20-30.
         {
             "Name": "ringspawns_min_enemy_pilot_dist",
-            "DefaultValue": "25"
+            "DefaultValue": "30"
         },
 
         // Minimum distance (in meters) to an enemy titan at spawn.
         {
             "Name": "ringspawns_min_enemy_titan_dist",
-            "DefaultValue": "35"
+            "DefaultValue": "40"
         },
 
         // Minimum distance (in meters) to an enemy reaper at spawn.
         {
             "Name": "ringspawns_min_enemy_reaper_dist",
-            "DefaultValue": "15"
+            "DefaultValue": "20"
         },
 
         // Distance reduction for LF maps (stacks, deck, etc.) due to their smaller size.
