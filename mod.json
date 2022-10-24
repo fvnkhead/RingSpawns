@@ -12,7 +12,8 @@
 
         // Preferred distance (in meters) to last spawned teammate.
         // 20 meters can lead to pretty packed games,
-        // while 30 seems to be more spread out like vanilla.
+        // while 40 seems to be more spread out like vanilla.
+        // Recommended range: 20-40
         {
             "Name": "ringspawns_friend_dist",
             "DefaultValue": "30"
@@ -23,7 +24,7 @@
         // or if playing FFA.
         // The smaller this is, the less time you spend looking for enemies
         // when having a 1v1 or 1v2 on a big map.
-        // Recommended range is around 60-90.
+        // Recommended range: 60-90
         {
             "Name": "ringspawns_1vx_dist",
             "DefaultValue": "75"
@@ -32,7 +33,7 @@
         // Minimum distance (in meters) to an enemy pilot at a new spawn,
         // eg. with 25, you should spawn without any enemies in a 25 meter radius.
         // The higher this is, the harder it is to find valid spawns on crowded maps,
-        // so the recommended range is around 20-30.
+        // so the recommended range: 20-30
         {
             "Name": "ringspawns_min_enemy_pilot_dist",
             "DefaultValue": "30"
