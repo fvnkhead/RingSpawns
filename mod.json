@@ -1,5 +1,5 @@
 {
-    "Name": "fvnkhead.RingSpawns",
+    "Name": "RingSpawns",
     "Description": "A different spawn algorithm",
     "Version": "1.0.0",
     "LoadPriority": 10,
