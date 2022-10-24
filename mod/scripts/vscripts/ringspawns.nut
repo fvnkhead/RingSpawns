@@ -69,7 +69,7 @@ void function RingSpawns_Init()
     // spawn funcs
     GameMode_SetPilotSpawnpointsRatingFunc(GameRules_GetGameMode(), RateSpawnpoints)
     AddSpawnpointValidationRule(CheckMinEnemyDist)
-    SetSpawnZoneRatingFunc(DecideSpawnZone)
+    //SetSpawnZoneRatingFunc(DecideSpawnZone) TODO: maybe not needed at the moment
 
     Log("ringspawns are enabled")
 }
