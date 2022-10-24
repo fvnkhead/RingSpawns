@@ -1,7 +1,7 @@
 RingSpawns
 ================================================================================
 
-A different spawn algorithm for Northstar.
+A different pilot spawn algorithm for Northstar.
 Currently playable on at least Pilots vs. Pilots, FFA modes and Attrition.
 
 Name
