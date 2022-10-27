@@ -27,7 +27,7 @@
         // Recommended range: 60-90
         {
             "Name": "ringspawns_1vx_dist",
-            "DefaultValue": "75"
+            "DefaultValue": "90"
         },
 
         // Minimum distance (in meters) to an enemy pilot at a new spawn,
